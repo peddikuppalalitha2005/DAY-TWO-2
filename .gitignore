@@ -1,0 +1,11 @@
+node_modules/
+dist/
+coverage/
+*.tsbuildinfo
+.env
+data/
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal
+uploads/
+npm-debug.log*

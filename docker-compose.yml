@@ -1,0 +1,18 @@
+services:
+  app:
+    build: .
+    ports:
+      - "4000:4000"
+    environment:
+      NODE_ENV: production
+      PORT: 4000
+      CLIENT_ORIGIN: ${CLIENT_ORIGIN:-http://localhost:4000}
+      DATABASE_PATH: /app/data/snovasys.sqlite
+      UPLOAD_DIR: /app/data/uploads
+      MAX_UPLOAD_BYTES: ${MAX_UPLOAD_BYTES:-20971520}
+    volumes:
+      - app-data:/app/data
+    restart: unless-stopped
+
+volumes:
+  app-data:
