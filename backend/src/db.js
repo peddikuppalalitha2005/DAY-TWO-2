@@ -34,7 +34,9 @@ const permissionNames = [
   'documents.read_any',
   'documents.delete_own',
   'documents.delete_any',
-  'users.read_any'
+  'users.read_any',
+  'users.manage_roles',
+  'audit.read_any'
 ];
 
 const seedAuthorization = db.transaction(() => {

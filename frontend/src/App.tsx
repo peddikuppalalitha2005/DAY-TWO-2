@@ -255,7 +255,7 @@ export default function App() {
 
           <section className="documents-section" id="documents">
             <div className="section-heading"><div><span className="eyebrow">YOUR LIBRARY</span><h2>Documents <span className="count-pill">{documents.length}</span></h2></div>
-              {canUpload && <form className="upload-form" onSubmit={handleUpload}><label className="file-picker"><span>＋</span> Choose file<input name="file" type="file" required /></label><button className="button primary upload-button" disabled={busy}>{busy ? 'Uploading…' : 'Upload document'}</button></form>}
+              {canUpload && <form className="upload-form" onSubmit={handleUpload}><label className="file-picker" title="PDF, TXT, PNG, or JPEG; maximum 20 MiB"><span>＋</span> Choose file<input name="file" type="file" accept=".pdf,.txt,.png,.jpg,.jpeg,application/pdf,text/plain,image/png,image/jpeg" required /></label><button className="button primary upload-button" disabled={busy}>{busy ? 'Uploading…' : 'Upload document'}</button></form>}
             </div>
             <div className="document-table">
               <div className="table-head"><span>NAME</span>{canReadAny && <span>OWNER</span>}<span>ADDED</span><span>SIZE</span><span className="actions-heading">ACTIONS</span></div>

@@ -1,55 +1,64 @@
 # Snovasys
 
-A role-aware document management starter with a React frontend, Express API, SQLite database, and persistent local document storage.
+A role-aware document management application built with React, Express, SQLite, and local persistent file storage.
 
-## Requirements
+## Requirements and local setup
 
-- Node.js 24+
-- npm 10+
-- Docker (optional, for the container deployment)
+- Node.js 24+ and npm 10+
+- Git for source control
+- Docker only if using the container deployment
 
-## Local development
-
-1. Copy `.env.example` to `.env` and adjust values if needed.
-2. Install dependencies with `npm install`.
-3. Start the API and frontend with `npm run dev`.
-4. Open <http://localhost:5173>. The API listens on <http://localhost:4000>.
-
-The database and uploaded files are created on first run. SQL migrations run automatically; public registration creates regular-user accounts only. To create the first administrator, register an account and promote it directly in SQLite:
-
-```sql
-INSERT INTO user_roles (user_id, role_id)
-SELECT 'USER_ID', id FROM roles WHERE name = 'admin';
-DELETE FROM user_roles
-WHERE user_id = 'USER_ID'
-  AND role_id = (SELECT id FROM roles WHERE name = 'user');
+```powershell
+Copy-Item .env.example .env
+npm install
+npm run dev
 ```
 
-Find the account ID with `SELECT id, email FROM users;`. Do this only through a trusted, direct database connection.
+Open <http://localhost:5173>. The API listens on <http://localhost:4000>; check `GET /api/health`.
+The SQLite database and uploads are created under `data/` on first run. SQL migrations are applied automatically.
 
-## Features
+## Roles, demo accounts, and test credentials
 
-- Registration, login, logout, bcrypt password hashing, and revocable 12-hour bearer sessions.
-- Admin, manager, and regular-user roles with permissions enforced by the API.
-- Document upload, listing, download, and deletion. Regular users can access their own documents; managers and admins can access all documents.
-- Audit events for authentication and document activity.
-- A dashboard tailored to the signed-in user's role.
+Public registration always creates a regular `user`. It never accepts a requested role. For local demos only, set six distinct environment variables in `.env`, then run `npm run seed:demo -w backend`. The script creates one admin, manager, and regular user, hashes their passwords, prints account email addresses but not passwords, refuses to overwrite accounts, and refuses to run with `NODE_ENV=production`. Set passwords to unique values of at least 12 characters; do not use demo credentials in production.
+
+The automated integration test creates its own accounts and isolated temporary SQLite database. Example test-only credentials are generated in `backend/test/app.test.js`; those accounts do not exist in the application database.
+
+## Security behavior
+
+- bcrypt password hashes; random 256-bit bearer tokens stored as SHA-256 hashes; revocable 12-hour sessions.
+- Backend authorization on every document list, upload, download, and delete operation. Users can access their own files; managers and admins can access all documents.
+- Strict upload allowlist: PDF-header, UTF-8 plain text, PNG-signature, and JPEG-signature files; the declared MIME type, file extension, and basic signature/content check must agree. This is file-type screening, not malware scanning or full document parsing. Size is capped by `MAX_UPLOAD_BYTES` (20 MiB by default).
+- Server-generated UUID storage names, sanitized download names, UUID validation, upload-directory containment checks, and symlink rejection for document operations.
+- Append-only audit records for registration, successful/failed login, logout, upload, download, deletion, and admin role changes. Admins can read audit history; the API does not expose a mutation route, and SQLite triggers reject update/delete operations.
+- Admin-only user listing and role assignment; the last administrator cannot be demoted.
+- Login attempts are limited to 10 unsuccessful attempts per connecting peer IP in a 15-minute window (behind a reverse proxy, this may be the proxy IP).
+- See [THREATS.md](./THREATS.md) for assumptions, mitigations, and limitations.
+
+## Tests
+
+```powershell
+npm test
+npm run build
+```
+
+Backend integration tests exercise registration/login/logout, invalid input, upload type and size rejection, admin/manager/user authorization, cross-user document isolation, download and deletion, audit log immutability, and login throttling.
+
+## API and database
+
+See [API.md](./API.md) for routes, authorization, request shapes, and responses. The initial SQLite schema is in `backend/migrations/001_initial.sql`; migration `002_immutable_audit_logs.sql` adds append-only audit triggers. The backend applies pending migrations at startup.
 
 ## Deployment
 
-Build and run the single-container deployment with `docker compose up --build -d`, then open <http://localhost:4000>. SQLite data and uploads persist in the `app-data` Docker volume. Configure `CLIENT_ORIGIN` to the public origin when deploying behind a domain or reverse proxy, and use HTTPS in production.
+Build and run with `docker compose up --build -d`, then open <http://localhost:4000>. Persistent SQLite data and uploads use the `app-data` Docker volume. Configure `CLIENT_ORIGIN` for your deployed frontend origin. Put the app behind HTTPS in production; do not run the demo seeder in production or expose the SQLite file.
 
-The frontend is served by the API in production. For a separate frontend/API deployment, set `VITE_API_URL` at frontend build time and set the API's `CLIENT_ORIGIN` to the frontend origin.
+For a separate frontend/API deployment, set `VITE_API_URL` at frontend build time and `CLIENT_ORIGIN` on the API. SQLite/local disk storage is intended for a single-instance deployment; use private object storage and a server database for horizontally scaled deployments.
 
-## API overview
+## Submission materials
 
-- `POST /api/auth/register`, `/api/auth/login`, `/api/auth/logout`
-- `GET /api/auth/me`, `/api/dashboard`
-- `GET /api/documents`, `POST /api/documents`
-- `GET /api/documents/:id/download`, `DELETE /api/documents/:id`
+- [API.md](./API.md) — API documentation
+- [THREATS.md](./THREATS.md) — threat model and residual risks
+- [PROMPTS.md](./PROMPTS.md) — summarized project prompt log
+- [FINAL_SUBMISSION.md](./FINAL_SUBMISSION.md) — project write-up and checklist
+- [DEMO.md](./DEMO.md) — timed five-minute demo recording script
 
-All document and dashboard routes require `Authorization: Bearer <token>`. Uploads are limited to 20 MiB by default; configure `MAX_UPLOAD_BYTES` to change the limit.
-
-## GitHub
-
-The application is ready to initialize and publish as a public repository. Create an empty public repository in your GitHub account, then add it as the `origin` remote and push this workspace.
+The demo script is not a recorded video. Record the walkthrough separately in your preferred screen recorder.
