@@ -1,0 +1,26 @@
+services:
+  - type: web
+    name: snovasys-day-two
+    runtime: docker
+    plan: starter
+    region: singapore
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /api/health
+    disk:
+      name: snovasys-data
+      mountPath: /app/data
+      sizeGB: 1
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: "10000"
+      - key: CLIENT_ORIGIN
+        value: https://snovasys-day-two.onrender.com
+      - key: DATABASE_PATH
+        value: /app/data/snovasys.sqlite
+      - key: UPLOAD_DIR
+        value: /app/data/uploads
+      - key: MAX_UPLOAD_BYTES
+        value: "20971520"

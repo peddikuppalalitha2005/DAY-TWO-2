@@ -49,7 +49,13 @@ See [API.md](./API.md) for routes, authorization, request shapes, and responses.
 
 ## Deployment
 
-Build and run with `docker compose up --build -d`, then open <http://localhost:4000>. Persistent SQLite data and uploads use the `app-data` Docker volume. Configure `CLIENT_ORIGIN` for your deployed frontend origin. Put the app behind HTTPS in production; do not run the demo seeder in production or expose the SQLite file.
+### Render
+
+The root `render.yaml` defines a Docker web service, `/api/health` health check, and a 1 GiB persistent disk mounted at `/app/data` for SQLite and uploads. The persistent disk requires a paid Render web-service plan. To deploy, push the repository to GitHub, sign in at <https://dashboard.render.com>, choose **New → Blueprint**, connect `peddikuppalalitha2005/DAY-TWO-2`, select the `main` branch, review the service and disk plan/cost in the Blueprint preview, and choose **Deploy Blueprint**. After deploy, confirm the `snovasys-day-two.onrender.com` URL is available and that `/api/health` returns `{"status":"ok"}`. The service runs the backend and serves the production frontend from the same origin. Do not run the demo seeder in production or expose the SQLite file.
+
+### Docker Compose
+
+Alternatively, build and run with `docker compose up --build -d`, then open <http://localhost:4000>. Persistent SQLite data and uploads use the `app-data` Docker volume. Configure `CLIENT_ORIGIN` for your deployed frontend origin. Put the app behind HTTPS in production.
 
 For a separate frontend/API deployment, set `VITE_API_URL` at frontend build time and `CLIENT_ORIGIN` on the API. SQLite/local disk storage is intended for a single-instance deployment; use private object storage and a server database for horizontally scaled deployments.
 
